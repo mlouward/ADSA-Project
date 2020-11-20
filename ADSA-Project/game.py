@@ -131,19 +131,39 @@ class Game():
                     #print("sneaky:", sneaky_killer.name)
                     sneaky_killer.score += 3
 
+    def update_ranks(self, players):
+        res = Tournament()
+        for p in players:
+            res.insert(p)
+        self.ranking = res
+
+    def delete_last_ten(self):
+        pass
+
     def play_rounds(self):
         ''' Used to simulate a round of the game, by taking 10 players
          per game and simulating scores for each game.
         '''
         players = inorder(self.ranking.root)
+        # Play 3 random games, then update the ranking
         for _ in range(3):
             rd.shuffle(players)
             # List of all the random lobbies.
             lobbies = [players[i:i + 10] for i in range(1, 92, 10)]
             for lobby in lobbies:
                 self.randomize_scores(lobby)
-        self.ranking.update()
+        self.update_ranks(players)
         print(self)
+
+        # Now,play the 9 elimination rounds:
+        for _ in range(9):
+            # Get players sorted by increasing score and create the lobbies
+            players = inorder(self.ranking.root)
+            lobbies = [players[i:i + 10] for i in range(1, 92, 10)]
+            for lobby in lobbies:
+                self.randomize_scores(lobby)
+            self.update_ranks(players)
+            self.delete_last_ten()
 
 def get_player_names():
     with open("players_list.txt", "r") as f:

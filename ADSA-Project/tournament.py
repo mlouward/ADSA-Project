@@ -103,9 +103,6 @@ class Tournament:
         pivot.bf = self._get_height(pivot.left) - self._get_height(pivot.right)
         return pivot  # return root of new tree
 
-    def update():
-        pass
-
 def inorder(root):
     '''Returns a list of Player, sorted by their score (ascending).'''
     rep = []
