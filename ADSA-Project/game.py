@@ -6,10 +6,9 @@ from tournament import Tournament, inorder, inorder_names
 class Game():
     def __init__(self):
         names = get_player_names()
-        players = [Player(i) for i in names]
-        self.ranking = Tournament()
-        for player in players:
-            self.ranking.insert(player)
+        # List of the players still in the game (not yet eliminated)
+        self.players = [Player(i) for i in names]
+        self.update_ranks()
         #print(inorder_names(self.ranking.root))
 
     def __repr__(self):
@@ -27,9 +26,11 @@ class Game():
         '''
         rd.shuffle(players)
         (imp1, imp2) = players[:2]
+        crewmates = players[2:]
         imp1.role = True
         imp2.role = True
-        crewmates = players[2:]
+        for player in crewmates:
+            player.role = False
         tmp = rd.randint(1, 100)
 
         if tmp > 30:
@@ -131,14 +132,21 @@ class Game():
                     #print("sneaky:", sneaky_killer.name)
                     sneaky_killer.score += 3
 
-    def update_ranks(self, players):
+    def update_ranks(self):
         res = Tournament()
-        for p in players:
+        for p in self.players:
             res.insert(p)
         self.ranking = res
 
     def delete_last_ten(self):
-        pass
+        self.players = inorder(self.ranking.root)[10:]
+        self.update_ranks()
+
+    #def delete_last_ten(self):
+    #    # delete the last 10 players by updating self.players
+    #    players = inorder(self.ranking.root)
+    #    self.players = players[10:]
+    #    self.ranking.delete_batch(players[:10])
 
     def play_rounds(self):
         ''' Used to simulate a round of the game, by taking 10 players
@@ -152,18 +160,35 @@ class Game():
             lobbies = [players[i:i + 10] for i in range(1, 92, 10)]
             for lobby in lobbies:
                 self.randomize_scores(lobby)
-        self.update_ranks(players)
-        print(self)
+        self.players = inorder(self.ranking.root)
+        self.update_ranks()
 
         # Now,play the 9 elimination rounds:
         for _ in range(9):
             # Get players sorted by increasing score and create the lobbies
-            players = inorder(self.ranking.root)
-            lobbies = [players[i:i + 10] for i in range(1, 92, 10)]
+            # self.players = inorder(self.ranking.root)
+            lobbies = [self.players[i:i + 10] for i in range(1, len(self.players) + 1, 10)]
             for lobby in lobbies:
                 self.randomize_scores(lobby)
-            self.update_ranks(players)
             self.delete_last_ten()
+        # Final ranking before 5 games reset
+        print("Final 10 players:")
+        print(inorder(self.ranking.root))
+
+        # Reset scores
+        for player in self.players:
+            player.score = 0
+
+        finalists = self.players
+        for _ in range(5):
+            rd.shuffle(finalists)
+            self.randomize_scores(finalists)
+        self.update_ranks()
+        self.players = inorder(self.ranking.root)
+
+        leaderboard = [f"TOP {i + 1}: {repr(p)}" for i, p in enumerate(self.players[::-1])]
+        print("\n\nFinal Leaderboard:\n__________________________________\n-",
+             '\n- '.join(leaderboard))
 
 def get_player_names():
     with open("players_list.txt", "r") as f:

@@ -10,7 +10,7 @@ class Player:
         self.right = None
         self.parent = None
         self.height = 1
-        self.balance = bf
+        self.bf = bf
 
     def __str__(self):
         return str(self.name)

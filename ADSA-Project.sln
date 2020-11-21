@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30711.63
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "ProjectASDA", "ADSA-Project\ProjectASDA.pyproj", "{3F13D8FB-2F9C-47C9-AC9D-0DDD70CD3D84}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Part1", "ADSA-Project\Part1.pyproj", "{3F13D8FB-2F9C-47C9-AC9D-0DDD70CD3D84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
