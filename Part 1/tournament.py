@@ -17,162 +17,117 @@ class Tournament:
         self.root = self._insert(self.root, key, key.score)
 
     def _insert(self, root: Player, key: Player, val: int):
-        '''
-        root: root of the tree to insert into (Player)
-        key: Player object
-        val: score of key
-        '''
         if not root:
-            return Player(key.name, val, bf=0, role=key.role)
-        if val < root.score:
-            left_sub_root = self._insert(root.left, key, val)  # insert and update left subroot
-            root.left = left_sub_root
-            left_sub_root.parent = root  # assign the parent
+            return Player(key.name, val, role=key.role)
+        elif key.score < root.score:
+            root.left = self._insert(root.left, key, key.score)
         else:
-            right_sub_root = self._insert(root.right, key, val)  # insert and update right subroot
-            root.right = right_sub_root
-            right_sub_root.parent = root
+            root.right = self._insert(root.right, key, key.score)
 
-        # finally, update heights and bf's of current root after insertion
-        # completed (postorder processing)
-        root.height = max(self._get_height(root.left), self._get_height(root.right)) + 1
-        root.balance = self._get_height(root.left) - self._get_height(root.right)
-        return self.rebalance(root)  # RE-BALANCE CURRENT ROOT (if required)
+        root.height = 1 + max(self._get_height(root.left),
+                              self._get_height(root.right))
 
-    def rebalance(self, root: Player):
-        if root.bf == 2:
-            if root.left.bf < 0:  # L-R rotation
-                root.left = self.rotate_left(root.left)
-                return self.rotate_right(root)
-            else:  # L-L rotation
-                return self.rotate_right(root)
-        elif root.bf == -2:
-            if root.right.bf > 0:  # R-L rotation
-                root.right = self.rotate_right(root.right)
-                return self.rotate_left(root)
-            else:  # R-R rotation
-                return self.rotate_left(root)
-        else:
-            return root  # no rebalancing
+        balance = self.get_balance(root)
 
-    def rotate_right(self, root: Player):
-        pivot = root.left
-        tmp = pivot.right
+        # Case 1 - Left Left
+        if balance > 1 and key.score <= root.left.score:
+            return self.rotate_right(root)
 
-        pivot.right = root
-        pivot.parent = root.parent
-        root.parent = pivot
+        # Case 2 - Right Right
+        if balance < -1 and key.score >= root.right.score:
+            return self.rotate_left(root)
 
-        root.left = tmp
-        if tmp:
-            tmp.parent = root
+        # Case 3 - Left Right
+        if balance > 1 and key.score > root.left.score:
+            root.left = self.rotate_left(root.left)
+            return self.rotate_right(root)
 
-        if pivot.parent:
-            if pivot.parent.left == root:
-                pivot.parent.left = pivot
-            else:
-                pivot.parent.right = pivot
+        # Case 4 - Right Left
+        if balance < -1 and key.score < root.right.score:
+            root.right = self.rotate_right(root.right)
+            return self.rotate_left(root)
 
-        root.height = max(self._get_height(root.left), self._get_height(root.right)) + 1
-        root.bf = self._get_height(root.left) - self._get_height(root.right)
-        pivot.height = max(self._get_height(pivot.left), self._get_height(pivot.right)) + 1
-        pivot.bf = self._get_height(pivot.left) - self._get_height(pivot.right)
-        return pivot  # return root of new tree
+        return root
 
-    def rotate_left(self, root: Player):
-        pivot = root.right
-        tmp = pivot.left
+    def rotate_right(self, z: Player):
+        y = z.left
+        tmp = y.right
+        y.right = z
+        z.left = tmp
 
-        pivot.left = root
-        pivot.parent = root.parent
-        root.parent = pivot
+        z.height = 1 + max(self._get_height(z.left), self._get_height(z.right))
+        y.height = 1 + max(self._get_height(y.left), self._get_height(y.right))
 
-        root.right = tmp
-        if tmp:
-            tmp.parent = root
+        return y
 
-        if pivot.parent:
-            if pivot.parent.left == root:
-                pivot.parent.left = pivot
-            else:
-                pivot.parent.right = pivot
+    def rotate_left(self, z):
+        y = z.right
+        tmp = y.left
+        y.left = z
+        z.right = tmp
 
-        root.height = max(self._get_height(root.left), self._get_height(root.right)) + 1
-        root.bf = self._get_height(root.left) - self._get_height(root.right)
-        pivot.height = max(self._get_height(pivot.left), self._get_height(pivot.right)) + 1
-        pivot.bf = self._get_height(pivot.left) - self._get_height(pivot.right)
-        return pivot  # return root of new tree
+        z.height = 1 + max(self._get_height(z.right), self._get_height(z.left))
+        y.height = 1 + max(self._get_height(y.right), self._get_height(y.left))
 
-    def delete(self, player):
-        self.root = self._delete(self.root, player.score, player.name)
+        return y
 
-    def _delete(self, root, key, name):
+    def delete(self, key):
+        self.root = self._delete(self.root, key)
+
+    def _delete(self, root, key):
         if not root:
             return root
 
         if key < root.score:
-            root.left = self._delete(root.left, key, name)
-
-        elif key > root.score:
-            root.right = self._delete(root.right, key, name)
+            root.left = self._delete(root.left, key)
 
         else:
-            if root.name != name:
-                if root.left is None:
-                    root.right = self._delete(root.right, key, name)
+            if root.left is None:
+                temp = root.right
+                root = None
+                return temp
 
-                elif root.right is None:
-                    root.left = self._delete(root.left, key, name)
+            elif root.right is None:
+                temp = root.left
+                root = None
+                return temp
 
-            else:
-                if root.left is None:
-                    temp = root.right
-                    root = None
-                    return temp
+            temp = self.get_min_val_node(root.right)
+            root.score = temp.score
+            root.right = self._delete(root.right, temp.score)
 
-                elif root.right is None:
-                    temp = root.left
-                    root = None
-                    return temp
-
-                temp = self.get_min_val_node(root.right)
-                root.score = temp.score
-                root.right = self._delete(root.right, temp.score, temp.name)
-
-        #If the tree has a single node return node
         if root is None:
             return root
 
-        #update the height of the tree
         root.height = 1 + max(self._get_height(root.left),
                                 self._get_height(root.right))
-        #find the balance factor
-        balance = self._get_height(root.left) - self._get_height(root.right)
+        balance = self.get_balance(root)
 
-        #Left Left
-        if balance > 1 and root.left.balance >= 0:
+        if balance > 1 and self.get_balance(root.left) >= 0:
             return self.rotate_right(root)
-        #Right Right
-        if balance < -1 and root.right.balance <= 0:
+
+        if balance < -1 and self.get_balance(root.right) <= 0:
             return self.rotate_left(root)
-        #Left Right
-        if balance > 1 and root.left.balance < 0:
+
+        if balance > 1 and self.get_balance(root.left) < 0:
             root.left = self.rotate_left(root.left)
             return self.rotate_right(root)
-        #Right Left
-        if balance < -1 and root.right.balance < 0:
+
+        if balance < -1 and self.get_balance(root.right) < 0:
             root.right = self.rotate_right(root.right)
             return self.rotate_left(root)
-        return root
 
-    def delete_batch(self, batch):
-        for player in batch:
-            self.delete(player)
+        return root
 
     def get_min_val_node(self, root):
         if root is None or root.left is None:
             return root
         return self.get_min_val_node(root.left)
+
+    def get_balance(self, root):
+        if not root:
+            return 0
+        return self._get_height(root.left) - self._get_height(root.right)
 
 def inorder(root):
     '''Returns a list of Player, sorted by their score (ascending).'''

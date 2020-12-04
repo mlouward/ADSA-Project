@@ -139,14 +139,13 @@ class Game():
         self.ranking = res
 
     def delete_last_ten(self):
-        self.players = inorder(self.ranking.root)[10:]
-        self.update_ranks()
 
-    #def delete_last_ten(self):
-    #    # delete the last 10 players by updating self.players
-    #    players = inorder(self.ranking.root)
-    #    self.players = players[10:]
-    #    self.ranking.delete_batch(players[:10])
+        for i in range(10):
+            # Get min score in log(n)
+            root = self.ranking.root
+            while root.left:
+                root = root.left
+            self.ranking.delete(root.score)
 
     def play_rounds(self):
         ''' Used to simulate a round of the game, by taking 10 players
@@ -167,13 +166,15 @@ class Game():
         for _ in range(9):
             # Get players sorted by increasing score and create the lobbies
             # self.players = inorder(self.ranking.root)
-            lobbies = [self.players[i:i + 10] for i in range(1, len(self.players) + 1, 10)]
+            lobbies = [self.players[i:i + 10] for i in range(1,
+            len(self.players) + 1, 10)]
             for lobby in lobbies:
                 self.randomize_scores(lobby)
             self.delete_last_ten()
         # Final ranking before 5 games reset
+        self.players = inorder(self.ranking.root)
         print("Final 10 players:")
-        print(inorder(self.ranking.root))
+        print(self.players)
 
         # Reset scores
         for player in self.players:
@@ -186,7 +187,8 @@ class Game():
         self.update_ranks()
         self.players = inorder(self.ranking.root)
 
-        leaderboard = [f"TOP {i + 1}: {repr(p)}" for i, p in enumerate(self.players[::-1])]
+        leaderboard = [f"TOP {i + 1}: {repr(p)}" for i, p in
+        enumerate(self.players[::-1])]
         print("\n\nFinal Leaderboard:\n__________________________________\n-",
              '\n- '.join(leaderboard))
 
