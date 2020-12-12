@@ -153,7 +153,8 @@ class Game():
         '''
         players = inorder(self.ranking.root)
         # Play 3 random games, then update the ranking
-        for _ in range(3):
+        for i in range(3):
+            print(f"Playing placement game {i+1}/3...")
             rd.shuffle(players)
             # List of all the random lobbies.
             lobbies = [players[i:i + 10] for i in range(1, 92, 10)]
@@ -161,19 +162,21 @@ class Game():
                 self.randomize_scores(lobby)
         self.players = inorder(self.ranking.root)
         self.update_ranks()
+        print()
 
         # Now,play the 9 elimination rounds:
-        for _ in range(9):
+        for i in range(9):
             # Get players sorted by increasing score and create the lobbies
             # self.players = inorder(self.ranking.root)
+            print(f"Playing ranked game {i+1}/9...")
             lobbies = [self.players[i:i + 10] for i in range(1,
-            len(self.players) + 1, 10)]
+                       len(self.players) + 1, 10)]
             for lobby in lobbies:
                 self.randomize_scores(lobby)
             self.delete_last_ten()
         # Final ranking before 5 games reset
         self.players = inorder(self.ranking.root)
-        print("Final 10 players:")
+        print("\nFinal 10 players:")
         print(self.players)
 
         # Reset scores
@@ -181,7 +184,8 @@ class Game():
             player.score = 0
 
         finalists = self.players
-        for _ in range(5):
+        for i in range(5):
+            print(f"Playing final game {i+1}/5...")
             rd.shuffle(finalists)
             self.randomize_scores(finalists)
         self.update_ranks()
