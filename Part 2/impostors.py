@@ -1,5 +1,5 @@
 from node import Node
-from itertools import combinations, takewhile
+from itertools import combinations
 
 
 def process(node_info):
@@ -13,7 +13,8 @@ def process(node_info):
     return name, neighbours
 
 def load_graph(path):
-    ''' Returns a graph made from a text file
+    '''
+    Returns a graph made from a text file
     in which each node lists its neighbours.
     '''
     with open(path) as f:
@@ -32,9 +33,9 @@ def probable_impostors(graph, dead_player: int):
     # list of dead_player
 
     impostors_combinations = set()
-    imp_list1 = graph[dead_player][1]
-    
-    for impostor in imp_list1:
+
+    # We go through the list of players having seen dead_player
+    for impostor in graph[dead_player][1]:
         # We can clear out from the impostor 2 the dead player,
         # the impostor 1 and the players imp1 has seen. We use a set
         # for the O(1) lookup time and to remove duplicates.
@@ -51,4 +52,5 @@ def probable_impostors(graph, dead_player: int):
 if __name__ == "__main__":
     graph = load_graph('graph.txt')
     print(graph)
+    # Print the probable killers for dead_player = 0
     print(probable_impostors(graph, 0))
