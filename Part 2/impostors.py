@@ -50,11 +50,13 @@ def probable_impostors(graph, dead_player: int):
     This method returns a list of pairs of probable impostors
     knowing that dead_player is reported dead.
     '''
-    # We go through the list of players having seen dead_player
-    # using Depth First Search with limited depth with dead_player as root
+    # We go through the list of graph using Depth First Search
+    # with limited depth and dead_player as root.
+    # We want depth = 2 to find players who DIDN'T SEE one of the players
+    # who SAW dead_player.
     impostors_combinations = dls(graph, dead_player, max_depth=2)
 
-    # remove duplicates tuples ((1, 3) and (3, 1) are the same for example)
+    # remove duplicates tuples. ((1, 3) and (3, 1) are the same for example)
     return set((a,b) if a<=b else (b,a) for a,b in impostors_combinations)
 
 if __name__ == "__main__":
