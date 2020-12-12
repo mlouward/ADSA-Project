@@ -1,7 +1,7 @@
 import numpy as np
+from itertools import product
+from math import inf
 
-
-INF = float('inf')
 
 def load_graph(path, for_crewmates=True):
     edges = []
@@ -13,31 +13,36 @@ def load_graph(path, for_crewmates=True):
                     break
                 else:
                     continue
-            edges.append(list(map(int, line.strip().split())))
-            
+            tmp = line.strip().split()
+            reverse_tmp = [tmp[1], tmp[0], tmp[2]]
+            # add edges in both directions
+            edges.append(list(map(int, tmp)))
+            edges.append(list(map(int, reverse_tmp)))
+
     graph_size = np.max([[i[0] for i in edges] + [i[1] for i in edges]])
-    print(graph_size)
-    
-    # in this list, the index + 1 is the node number,
-    # and it contains a list of pairs (neighbour, distance)
-    adj_list = [0 for i in range(graph_size)]
-    for edge in edges:
-        # Test if starting edge has already a neighbour
-        if not adj_list[edge[0] - 1]:
-            adj_list[edge[0] - 1] = [(edge[1], edge[2])]
-        else:
-            # Add the edge to the already existing list
-            adj_list[edge[0] - 1].append((edge[1], edge[2]))
-        # Because the graph is undirected, we gotta add the edges in 
-        # both lists (edges contains the list of unique links)
-        if not adj_list[edge[1] - 1]:
-            adj_list[edge[1] - 1] = [(edge[0], edge[2])]
-        else:
-            adj_list[edge[1] - 1].append((edge[0], edge[2]))
+    return graph_size, edges
 
-    return np.array(adj_list)
-
+def floyd_warshall(n, edge):
+    rn = range(n)
+    dist = [[inf] * n for i in rn]
+    nxt  = [[0]   * n for i in rn]
+    for i in rn:
+        dist[i][i] = 0
+    for u, v, w in edge:
+        dist[u-1][v-1] = w
+        nxt[u-1][v-1] = v-1
+    for k, i, j in product(rn, repeat=3):
+        sum_ik_kj = dist[i][k] + dist[k][j]
+        if dist[i][j] > sum_ik_kj:
+            dist[i][j] = sum_ik_kj
+            nxt[i][j]  = nxt[i][k]
+    print("  pair    dist")
+    for i, j in product(rn, repeat=2):
+        if i != j:
+            print("%2d -> %2d  %4d" 
+                  % (i + 1, j + 1, dist[i][j]))
 
 if __name__ == "__main__":
-    graph = load_graph('graph_all.txt', True)
-    print(graph)
+    n, graph = load_graph('graph_all.txt', False)
+    print(n, graph)
+    floyd_warshall(n, graph)
