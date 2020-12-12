@@ -42,9 +42,8 @@ def probable_impostors(graph, dead_player: int):
         suspects = [i for i in range(len(graph)) if i not in clear]
         for i, c in enumerate(combinations([impostor] + suspects, 2)):
             if i < len(suspects):
-                print(tuple(c))
                 impostors_combinations.add(tuple(c))
-        
+
     # remove duplicates tuples ((1, 3) and (3, 1) are the same)
     return set((a,b) if a<=b else (b,a) for a,b in impostors_combinations)
 
