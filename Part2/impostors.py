@@ -22,29 +22,45 @@ def load_graph(path: str):
 
     return adjacency_list
 
+def dls(graph, root, max_depth):
+    '''
+    Depth first search with limited depth (in this case, 
+    depth = 2 because we want the 2nd degree of neighbours).
+    '''
+    res = set()
+
+    def _dls(graph, root, parent, max_depth):
+        if max_depth == 0:
+            res.update([(parent, root)])
+            return
+
+        if max_depth != 1:
+            possible = graph[root][1]
+        else:
+            # At last step, we want those who didn't see the
+            # impostors_combinations so we remove them of the suspects
+            possible = [i for i in range(len(graph))
+                        if i not in [root] + graph[root][1]]
+        for child in possible:
+            if child != parent:
+                _dls(graph, child, root, max_depth - 1)
+
+    _dls(graph, root, root, max_depth)
+    return res
+
 def probable_impostors(graph, dead_player: int):
     '''
     A graph is a list of adjacency lists for each node in the graph.
     This method returns a list of pairs of probable impostors
     knowing that dead_player is reported dead.
     '''
-    # We build the first list of probable impostors from the adjacency
-    # list of dead_player
+    # We go through the list of graph using Depth First Search
+    # with limited depth and dead_player as root.
+    # We want depth = 2 to find players who DIDN'T SEE one of the players
+    # who SAW dead_player.
+    impostors_combinations = dls(graph, dead_player, max_depth=2)
 
-    impostors_combinations = set()
-
-    # We go through the list of players having seen dead_player
-    for impostor in graph[dead_player][1]:
-        # We can clear out from the impostor 2 the dead player,
-        # the impostor 1 and the players imp1 has seen. We use a set
-        # for the O(1) lookup time and to remove duplicates.
-        clear = {dead_player, impostor, *graph[impostor][1]}
-        suspects = [i for i in range(len(graph)) if i not in clear]
-        for i, c in enumerate(combinations([impostor] + suspects, 2)):
-            if i < len(suspects):
-                impostors_combinations.add(tuple(c))
-
-    # remove duplicates tuples ((1, 3) and (3, 1) are the same)
+    # remove duplicates tuples. ((1, 3) and (3, 1) are the same for example)
     return set((a,b) if a<=b else (b,a) for a,b in impostors_combinations)
 
 if __name__ == "__main__":
