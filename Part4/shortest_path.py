@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import permutations
+from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 
 INF = float('inf')
@@ -50,28 +51,48 @@ def load_graph(path, for_crewmates=True):
         matrix[edge[1] - 1][edge[0] - 1] = edge[2]
     return np.array(matrix)
 
-def travelling_salesman(graph, n, s):
-    vertex = list(range(1, n))
-    # store minimum weight Hamiltonian Cycle
-    min_path = INF
-    next_permutation = permutations(vertex)
-    
-    for i in next_permutation:
-        current_pathweight = 0
+def create_data_model(graph):
+    """Stores the data for the problem."""
+    data = {}
+    data['distance_matrix'] = floyd_warshall(graph)
+    data['num_vehicles'] = 1
+    data['depot'] = 0
+    return data
 
-        k = s
-        for j in i:
-            current_pathweight += graph[k][j]
-            k = j
-        current_pathweight += graph[k][s]
-        if current_pathweight < min_path:
-            min_path = current_pathweight
-            path = i
+def distance_callback(from_index, to_index):
+    """Returns the distance between the two nodes."""
+    # Convert from routing variable Index to distance matrix NodeIndex.
+    from_node = manager.IndexToNode(from_index)
+    to_node = manager.IndexToNode(to_index)
+    return data['distance_matrix'][from_node][to_node]
 
-    return min_path, path
+def print_solution(manager, routing, solution):
+    """Prints solution on console."""
+    print('Objective: {} miles'.format(solution.ObjectiveValue()))
+    index = routing.Start(0)
+    plan_output = 'Route for vehicle 0:\n'
+    route_distance = 0
+    while not routing.IsEnd(index):
+        plan_output += ' {} ->'.format(manager.IndexToNode(index) + 1)
+        previous_index = index
+        index = solution.Value(routing.NextVar(index))
+        route_distance += routing.GetArcCostForVehicle(previous_index, index, 0)
+    plan_output += ' {}\n'.format(manager.IndexToNode(index) + 1)
+    plan_output += 'Route distance: {}miles\n'.format(route_distance)
+    print(plan_output)
 
 if __name__ == "__main__":
     graph = load_graph(f"graph_all.txt")
-    complete_graph = floyd_warshall(graph)
-    print(complete_graph)
-    print(travelling_salesman(complete_graph, 20, 10))
+    data = create_data_model(graph)
+    manager = pywrapcp.RoutingIndexManager(
+        len(data['distance_matrix']), data['num_vehicles'],
+        data['depot'])
+    routing = pywrapcp.RoutingModel(manager)
+    transit_callback_index = routing.RegisterTransitCallback(distance_callback)
+    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+    search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+    search_parameters.first_solution_strategy = (
+        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+    solution = routing.SolveWithParameters(search_parameters)
+    if solution:
+        print_solution(manager, routing, solution)
