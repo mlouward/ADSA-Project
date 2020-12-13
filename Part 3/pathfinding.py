@@ -50,7 +50,7 @@ def load_graph(path, for_crewmates=True):
     return np.array(matrix)
 
 if __name__ == "__main__":
-    graph = load_graph('graph_all.txt', True)
+    graph = load_graph('graph_all.txt', False)
     with np.printoptions(linewidth=1000, infstr='.'):
         print(graph)
         print(floyd_warshall(graph))
