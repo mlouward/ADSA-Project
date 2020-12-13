@@ -23,6 +23,10 @@ def load_graph(path: str):
     return adjacency_list
 
 def dls(graph, root, max_depth):
+    '''
+    Depth first search with limited depth (in this case, 
+    depth = 2 because we want the 2nd degree of neighbours).
+    '''
     res = set()
 
     def _dls(graph, root, parent, max_depth):
