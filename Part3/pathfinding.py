@@ -52,5 +52,7 @@ def load_graph(path, for_crewmates=True):
 if __name__ == "__main__":
     graph = load_graph('graph_all.txt', False)
     with np.printoptions(linewidth=1000, infstr='.'):
+        print("Distance matrix of the rooms:\n")
         print(graph)
+        print("\nMinimal distance between 2 rooms for impostors (after Floyd-Warshall):\n")
         print(floyd_warshall(graph))

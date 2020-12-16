@@ -65,6 +65,8 @@ def probable_impostors(graph, dead_player: int):
 
 if __name__ == "__main__":
     graph = load_graph('graph.txt')
+    print("Adjacency list:\n")
     print(graph)
     # Print the probable killers for dead_player = 0
+    print("\nResult of probable impostors when player 0 is killed:\n")
     print(probable_impostors(graph, 0))

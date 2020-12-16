@@ -82,4 +82,5 @@ if __name__ == "__main__":
             min_dist = new_dist
             min_path = path
     # Print with i + 1 because our graph starts at 1
-    print(min_dist, list(map(lambda i: i+1, min_path)))
+    print("Shortest path to visit all rooms:\ndistance   1-indexed path")
+    print(min_dist, "       ", list(map(lambda i: i+1, min_path)))
